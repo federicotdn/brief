@@ -1,0 +1,48 @@
+specVersion: v1
+command:
+  name: curl
+  version: 7.81.0
+  options:
+  - flag: ["-d", "--data"]
+    help: HTTP POST data
+  - flag: ["-f", "--fail"]
+    help: Fail silently (no output at all) on HTTP errors
+    type: toggle
+  - flag: ["--help", "-h"]
+    help: Show help
+    type: valueOptional
+    default: all
+  - flag: ["-i", "--include"]
+    help: Include protocol response headers in the output
+    type: toggle
+  - flag: ["-o", "--output"]
+    help: Write to file instead of stdout
+  - flag: ["-O", "--remote-name"]
+    help: Write output to a file named as the remote file
+    type: toggle
+  - flag: ["-s", "--silent"]
+    help: Silent mode
+    type: toggle
+  - flag: ["-T", "--upload-file"]
+    help: Transfer local FILE to destination
+  - flag: ["-u", "--user"]
+    help: Server user and password
+    default: user:password
+  - flag: ["-A", "--user-agent"]
+    help: Send User-Agent <name> to server
+  - flag: ["-v", "--verbose"]
+    help: Make the operation more talkative
+    type: toggle
+  - flag: ["-V", "--version"]
+    help: Show version number and quit
+    type: toggle
+  - flag: ["-X", "--request"]
+    help: Specify request method
+    default: GET
+  - flag: ["-H", "--header"]
+    help: Add custom header
+    type: list
+  - argument: url
+    help: URL
+    maxCount: 1
+

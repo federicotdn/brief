@@ -1,0 +1,48 @@
+specVersion: v1
+command:
+  name: docker
+  version: 23.0.1
+  options:
+  - flag: ["--help"]
+    help: Show help
+    type: toggle
+  subcommands:
+  - name: inspect
+    help: Return low-level information on Docker objects
+    options:
+    - flag: ["-f", "--format"]
+      help: Format using Go template
+      type: valueOptional
+    - flag: ["-s", "--size"]
+      help: Display total file sizes
+      type: toggle
+    - flag: ["--type"]
+      help: Return JSON for type
+    - flag: ["--foo"]
+      help: Testing flag
+      type: list
+    - argument: name|id
+      help: Name or ID
+  - name: ps
+    help: List containers
+    options:
+    - flag: ["--all"]
+      help: Show all containers
+      type: toggle
+    - flag: ["--no-trunc"]
+      help: Don't truncate output
+      type: toggle
+    - flag: ["--latest"]
+      help: Show latest created container
+      type: toggle
+    - flag: ["--quiet"]
+      help: Only display container IDs
+      type: toggle
+    - flag: ["--size"]
+      help: Display total file sizes
+      type: toggle
+  - name: info
+    help: Display system-wide information
+    options:
+    - flag: ["--format"]
+      help: Format using Go template

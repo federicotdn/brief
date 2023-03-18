@@ -1,0 +1,19 @@
+specVersion: v1
+command:
+  name: tar
+  version: 1.34
+  options:
+  - flag: ["-x", "--extract"]
+    help: Extract files from archive
+    type: toggle
+  - flag: ["-z", "--gzip", "--gunzip", "--ungzip"]
+    help: Filter the archive through gzip
+    type: toggle
+  - flag: ["-f", "--file"]
+    help: Use archive file or device ARCHIVE
+  - flag: ["-v", "--verbose"]
+    help: Verbosely list files processed
+    type: toggle
+  - flag: ["-?"]
+    help: Give this help list
+    type: toggle
