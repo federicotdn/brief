@@ -416,6 +416,10 @@ func (app *application) updateOptionsView() {
 	optsText := NewUIText()
 
 	for _, cmd := range app.enabledCommands {
+		if len(cmd.Options) == 0 {
+			continue
+		}
+
 		optsText.write(cmd.Name + ":\n")
 
 		for _, opt := range cmd.Options {
