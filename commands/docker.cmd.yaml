@@ -18,9 +18,6 @@ command:
       type: toggle
     - flag: ["--type"]
       help: Return JSON for type
-    - flag: ["--foo"]
-      help: Testing flag
-      type: list
     - argument: name|id
       help: Name or ID
   - name: ps

@@ -41,8 +41,7 @@ command:
     default: GET
   - flag: ["-H", "--header"]
     help: Add custom header
-    type: list
+    repeatable: true
   - argument: url
     help: URL
-    maxCount: 1
 

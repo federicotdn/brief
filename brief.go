@@ -29,7 +29,6 @@ const (
 	PREFIX_EQUALS = '='
 	PREFIX_PLUS   = '+'
 
-	FLAG_TYPE_VALUES_LIST    = "list"
 	FLAG_TYPE_VALUE          = "value"
 	FLAG_TYPE_VALUE_OPTIONAL = "valueOptional"
 	FLAG_TYPE_TOGGLE         = "toggle"
@@ -46,10 +45,10 @@ type option struct {
 	Flags    []string `yaml:"flag"`
 	Argument string   `yaml:"argument"`
 
-	Help     string `yaml:"help"`
-	FlagType string `yaml:"type"`
-	Default  string `yaml:"default"`
-	MaxCount uint   `yaml:"maxCount"`
+	Help       string `yaml:"help"`
+	FlagType   string `yaml:"type"`
+	Default    string `yaml:"default"`
+	Repeatable bool   `yaml:"repeatable"`
 
 	key    rune
 	prefix rune
@@ -435,19 +434,21 @@ func (app *application) updateOptionsView() {
 			optsText.write(" " + opt.Help + " (" + flags)
 
 			switch opt.getType() {
-			case FLAG_TYPE_VALUES_LIST:
-				// The string to display is "[repeatable]", but an extra "[" needs
-				// to be added in order to prevent tview from interpreting it as a
-				// color tag.
-				optsText.write(" <value>) [repeatable[]")
 			case FLAG_TYPE_VALUE:
 				optsText.write(" <value>)")
 			case FLAG_TYPE_VALUE_OPTIONAL:
-				// See comment above.
+				// The string to display is "[value]", but an extra "[" needs to be
+				// added in order to prevent tview from interpreting it as a color tag.
 				optsText.write(" [value[])")
 			case FLAG_TYPE_TOGGLE:
 				optsText.write(")")
 			}
+
+			if opt.Repeatable {
+				// See comment above
+				optsText.write(" [repeatable[]")
+			}
+
 			optsText.write("\n")
 			optsText.undim()
 		}
@@ -611,10 +612,10 @@ func (app *application) handleDigitKeyNoPrefix(key rune) {
 			}
 
 			if opt.key == key {
-				if cmd.optionValueCount(opt) < opt.MaxCount || opt.MaxCount == 0 {
+				if cmd.optionValueCount(opt) == 0 || opt.Repeatable {
 					app.promptOptionValue(cmd, opt)
 				} else {
-					app.showMessage("argument %v: maximum count reached", opt.Argument)
+					cmd.deleteOptionValuesFor(opt)
 				}
 				found = true
 				break
@@ -654,7 +655,7 @@ func (app *application) handleLetterDigitKeyWithPrefix(key rune) {
 			}
 
 			if opt.prefix == app.lastPrefix && opt.key == key {
-				if opt.getType() == FLAG_TYPE_VALUES_LIST {
+				if opt.Repeatable {
 					app.promptOptionValue(cmd, opt)
 				} else {
 					if cmd.optionValueCount(opt) == 0 {
@@ -793,7 +794,11 @@ func main() {
 	}
 
 	var sp spec
-	yaml.Unmarshal(data, &sp)
+	err = yaml.Unmarshal(data, &sp)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "error: unable to unmarshal YAML data:", err)
+		os.Exit(1)
+	}
 
 	if sp.Version != SPEC_VERSION {
 		fmt.Fprintln(os.Stderr, "error: spec version must be", SPEC_VERSION)

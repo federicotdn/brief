@@ -1,0 +1,161 @@
+specVersion: v1
+command:
+  name: emacs
+  version: 28.1
+  options:
+  - flag: ["--batch"]
+    help: "do not do interactive display; implies -q"
+    type: "toggle"
+  - flag: ["--chdir"]
+    help: "change to directory DIR"
+  - flag: ["--daemon", "--bg-daemon"]
+    help: "start a (named) server in the background"
+    type: "valueOptional"
+  - flag: ["--fg-daemon"]
+    help: "start a (named) server in the foreground"
+    type: "valueOptional"
+  - flag: ["--debug-init"]
+    help: "enable Emacs Lisp debugger for init file"
+    type: "toggle"
+  - flag: ["--display", "-d"]
+    help: "use X server DISPLAY"
+  - flag: ["--module-assertions"]
+    help: "assert behavior of dynamic modules"
+    type: "toggle"
+  - flag: ["--dump-file"]
+    help: "read dumped state from FILE"
+  - flag: ["--sandbox"]
+    help: "read Seccomp BPF filter from FILE"
+  - flag: ["--no-build-details"]
+    help: "do not add build details such as time stamps"
+    type: "toggle"
+  - flag: ["--no-desktop"]
+    help: "do not load a saved desktop"
+    type: "toggle"
+  - flag: ["--no-init-file", "-q"]
+    help: "load neither ~/.emacs nor default.el"
+    type: "toggle"
+  - flag: ["--no-loadup", "-nl"]
+    help: "do not load loadup.el into bare Emacs"
+    type: "toggle"
+  - flag: ["--no-site-file"]
+    help: "do not load site-start.el"
+    type: "toggle"
+  - flag: ["--no-x-resources"]
+    help: "do not load X resources"
+    type: "toggle"
+  - flag: ["--no-site-lisp", "-nsl"]
+    help: "do not add site-lisp directories to load-path"
+    type: "toggle"
+  - flag: ["--no-splash"]
+    help: "do not display a splash screen on startup"
+    type: "toggle"
+  - flag: ["--no-window-system", "-nw"]
+    help: "do not communicate with X, ignoring $DISPLAY"
+    type: "toggle"
+  - flag: ["--quick", "-Q"]
+    help: "equivalent to: -q --no-site-file --no-site-lisp --no-splash --no-x-resources"
+    type: "toggle"
+  - flag: ["--script"]
+    help: "run FILE as an Emacs Lisp script"
+  - flag: ["--terminal", "-t"]
+    help: "use DEVICE for terminal I/O"
+  - flag: ["--user", "-u"]
+    help: "load ~USER/.emacs instead of your own"
+  - flag: ["FILE"]
+    help: "visit FILE"
+  - flag: ["+LINE"]
+    help: "go to line LINE in next FILE"
+  - flag: ["+LINE:COLUMN"]
+    help: "go to line LINE, column COLUMN, in next FILE"
+  - flag: ["--directory", "-L"]
+    help: "prepend DIR to load-path (with :DIR, append DIR)"
+    repeatable: true
+  - flag: ["--eval"]
+    help: "evaluate Emacs Lisp expression EXPR"
+    repeatable: true
+  - flag: ["--execute"]
+    help: "evaluate Emacs Lisp expression EXPR"
+    repeatable: true
+  - flag: ["--file"]
+    help: "visit FILE"
+  - flag: ["--find-file"]
+    help: "visit FILE"
+  - flag: ["--funcall", "-f"]
+    help: "call Emacs Lisp function FUNC with no arguments"
+  - flag: ["--insert"]
+    help: "insert contents of FILE into current buffer"
+  - flag: ["--kill"]
+    help: "exit without asking for confirmation"
+    type: "toggle"
+  - flag: ["--load", "-l"]
+    help: "load Emacs Lisp FILE using the load function"
+  - flag: ["--visit"]
+    help: "visit FILE"
+  - flag: ["--background-color", "-bg"]
+    help: "window background color"
+  - flag: ["--basic-display", "-D"]
+    help: "disable many display features; used for debugging Emacs"
+    type: "toggle"
+  - flag: ["--border-color", "-bd"]
+    help: "main border color"
+  - flag: ["--border-width", "-bw"]
+    help: "width of main border"
+  - flag: ["--color", "--color="]
+    help: "override color mode for character terminals; MODE defaults to `auto', and can also be `never', `always', or a mode name like `ansi8'"
+    type: "valueOptional"
+  - flag: ["--cursor-color", "-cr"]
+    help: "color of the Emacs cursor indicating point"
+  - flag: ["--font", "-fn"]
+    help: "default font; must be fixed-width"
+  - flag: ["--foreground-color", "-fg"]
+    help: "window foreground color"
+  - flag: ["--fullheight", "-fh"]
+    help: "make the first frame high as the screen"
+    type: "toggle"
+  - flag: ["--fullscreen", "-fs"]
+    help: "make the first frame fullscreen"
+    type: "toggle"
+  - flag: ["--fullwidth", "-fw"]
+    help: "make the first frame wide as the screen"
+    type: "toggle"
+  - flag: ["--maximized", "-mm"]
+    help: "make the first frame maximized"
+    type: "toggle"
+  - flag: ["--geometry", "-g"]
+    help: "window geometry"
+  - flag: ["--no-bitmap-icon", "-nbi"]
+    help: "do not use picture of gnu for Emacs icon"
+    type: "toggle"
+  - flag: ["--iconic"]
+    help: "start Emacs in iconified state"
+    type: "toggle"
+  - flag: ["--internal-border", "-ib"]
+    help: "width between text and main border"
+  - flag: ["--line-spacing", "-lsp"]
+    help: "additional space to put between lines"
+  - flag: ["--mouse-color", "-ms"]
+    help: "mouse cursor color in Emacs window"
+  - flag: ["--name"]
+    help: "title for initial Emacs frame"
+  - flag: ["--no-blinking-cursor", "-nbc"]
+    help: "disable blinking cursor"
+    type: "toggle"
+  - flag: ["--reverse-video$", "-r", "-rv"]
+    help: "switch foreground and background"
+    type: "toggle"
+  - flag: ["--title", "-T"]
+    help: "title for initial Emacs frame"
+  - flag: ["--vertical-scroll-bars", "-vb"]
+    help: "enable vertical scroll bars"
+    type: "toggle"
+  - flag: ["--xrm"]
+    help: "set additional X resources"
+  - flag: ["--parent-id"]
+    help: "set parent window"
+  - flag: ["--help"]
+    help: "display this help and exit"
+    type: "toggle"
+  - flag: ["--version"]
+    help: "output version information and exit"
+    type: "toggle"

@@ -1,0 +1,158 @@
+specVersion: v1
+command:
+  name: dpkg
+  version: 1.21.1
+  options:
+  - flag: ["-i", "--install"]
+    help: ".deb file name... | -R|--recursive <directory>..."
+  - flag: ["--unpack"]
+    help: ".deb file name... | -R|--recursive <directory>..."
+  - flag: ["-A", "--record-avail"]
+    help: ".deb file name... | -R|--recursive <directory>..."
+  - flag: ["--configure"]
+    help: "<package>... | -a|--pending"
+  - flag: ["--triggers-only"]
+    help: "<package>... | -a|--pending"
+  - flag: ["-r", "--remove"]
+    help: "<package>... | -a|--pending"
+  - flag: ["-P", "--purge"]
+    help: "<package>... | -a|--pending"
+  - flag: ["-V", "--verify"]
+    help: "Verify the integrity of package(s)."
+    type: "valueOptional"
+  - flag: ["--get-selections"]
+    help: "Get list of selections to stdout."
+    type: "valueOptional"
+  - flag: ["--set-selections"]
+    help: "Set package selections from stdin."
+    type: "toggle"
+  - flag: ["--clear-selections"]
+    help: "Deselect every non-essential package."
+    type: "toggle"
+  - flag: ["--update-avail"]
+    help: "Replace available packages info."
+    type: "valueOptional"
+  - flag: ["--merge-avail"]
+    help: "Merge with info from file."
+    type: "valueOptional"
+  - flag: ["--clear-avail"]
+    help: "Erase existing available info."
+    type: "toggle"
+  - flag: ["--forget-old-unavail"]
+    help: "Forget uninstalled unavailable pkgs."
+    type: "toggle"
+  - flag: ["-s", "--status"]
+    help: "Display package status details."
+    type: "valueOptional"
+  - flag: ["-p", "--print-avail"]
+    help: "Display available version details."
+    type: "valueOptional"
+  - flag: ["-L", "--listfiles"]
+    help: "List files 'owned' by package(s)."
+    repeatable: true
+  - flag: ["-l", "--list"]
+    help: "List packages concisely."
+    type: "valueOptional"
+  - flag: ["-S", "--search"]
+    help: "Find package(s) owning file(s)."
+    repeatable: true
+  - flag: ["-C", "--audit"]
+    help: "Check for broken package(s)."
+    type: "valueOptional"
+  - flag: ["--yet-to-unpack"]
+    help: "Print packages selected for installation."
+    type: "toggle"
+  - flag: ["--predep-package"]
+    help: "Print pre-dependencies to unpack."
+    type: "toggle"
+  - flag: ["--add-architecture"]
+    help: "Add <arch> to the list of architectures."
+  - flag: ["--remove-architecture"]
+    help: "Remove <arch> from the list of architectures."
+  - flag: ["--print-architecture"]
+    help: "Print dpkg architecture."
+    type: "toggle"
+  - flag: ["--print-foreign-architectures"]
+    help: "Print allowed foreign architectures."
+    type: "toggle"
+  - flag: ["--assert-help"]
+    help: "Show help on assertions."
+    type: "toggle"
+  - flag: ["--assert-<feature>"]
+    help: "Assert support for the specified feature."
+  - flag: ["--validate-<thing>"]
+    help: "Validate a <thing>'s <string>."
+  - flag: ["--compare-versions"]
+    help: "Compare version numbers - see below."
+  - flag: ["--force-help"]
+    help: "Show help on forcing."
+    type: "toggle"
+  - flag: ["-Dh", "--debug=help"]
+    help: "Show help on debugging."
+    type: "toggle"
+  - flag: ["-?", "--help"]
+    help: "Show this help message."
+    type: "toggle"
+  - flag: ["--version"]
+    help: "Show the version."
+    type: "toggle"
+  - flag: ["--admindir=<directory>"]
+    help: "Use <directory> instead of /var/lib/dpkg."
+  - flag: ["--root=<directory>"]
+    help: "Install on a different root directory."
+  - flag: ["--instdir=<directory>"]
+    help: "Change installation dir without changing admin dir."
+  - flag: ["--pre-invoke=<command>"]
+    help: "Set a pre-invoke hook."
+  - flag: ["--post-invoke=<command>"]
+    help: "Set a post-invoke hook."
+  - flag: ["--path-exclude=<pattern>"]
+    help: "Do not install paths which match a shell pattern."
+  - flag: ["--path-include=<pattern>"]
+    help: "Re-include a pattern after a previous exclusion."
+  - flag: ["-O", "--selected-only"]
+    help: "Skip packages not selected for install/upgrade."
+    type: "toggle"
+  - flag: ["-E", "--skip-same-version"]
+    help: "Skip packages whose same version is installed."
+    type: "toggle"
+  - flag: ["-G", "--refuse-downgrade"]
+    help: "Skip packages with earlier version than installed."
+    type: "toggle"
+  - flag: ["-B", "--auto-deconfigure"]
+    help: "Install even if it would break some other package."
+    type: "toggle"
+  - flag: ["--[no-]triggers"]
+    help: "Skip or force consequential trigger processing."
+    type: "toggle"
+  - flag: ["--verify-format=<format>"]
+    help: "Verify output format (supported: 'rpm')."
+  - flag: ["--no-pager"]
+    help: "Disables the use of any pager."
+    type: "toggle"
+  - flag: ["--no-debsig"]
+    help: "Do not try to verify package signatures."
+    type: "toggle"
+  - flag: ["--no-act", "--dry-run", "--simulate"]
+    help: "Just say what we would do - don't do it."
+  - flag: ["-D", "--debug=<octal>"]
+    help: "Enable debugging (see -Dhelp or --debug=help)."
+  - flag: ["--status-fd"]
+    help: "Send status change updates to file descriptor <n>."
+  - flag: ["--status-logger=<command>"]
+    help: "Send status change updates to <command>'s stdin."
+  - flag: ["--log=<filename>"]
+    help: "Log status changes and actions to <filename>."
+  - flag: ["--ignore-depends=<package>[,...]"]
+    help: "Ignore dependencies involving <package>."
+  - flag: ["--force-<thing>[,...]"]
+    help: "Override problems (see --force-help)."
+  - flag: ["--no-force-<thing>[,...]"]
+    help: "Stop when problems encountered."
+  - flag: ["--refuse-<thing>[,...]"]
+    help: "Ditto."
+  - flag: ["--abort-after"]
+    help: "Abort after encountering <n> errors."
+  - flag: ["--robot"]
+    help: "Use machine-readable output on some commands."
+    type: "toggle"

@@ -1,4 +1,4 @@
-module github.com/federicotdn/brief3
+module github.com/federicotdn/brief
 
 go 1.20
 
