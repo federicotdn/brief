@@ -141,7 +141,7 @@ func newUserInterface() *userInterface {
 	root := tview.NewFlex().SetDirection(tview.FlexRow)
 
 	root.AddItem(topFlex, 0, 1, false)
-	root.AddItem(bottomFlex, 0, 3, false)
+	root.AddItem(bottomFlex, 0, 4, false)
 	root.AddItem(messagesTextView, 1, 0, false)
 
 	minibuffer := tview.NewInputField()
