@@ -48,14 +48,16 @@ type option struct {
 	Flags    []string `yaml:"flag"`
 	Argument string   `yaml:"argument"`
 
-	// Properties of the option itself
+	// Syntactic properties of the option itself
 	FlagType   string `yaml:"type"`
 	Repeatable bool   `yaml:"repeatable"`
+	Separator  string `yaml:"separator"`
 
 	// Properties to make querying for a value easier/quicker
 	Default     string           `yaml:"default"`
 	Placeholder string           `yaml:"placeholder"`
 	Completion  optionCompletion `yaml:"completion"`
+	Metavar     string           `yaml:"metavar"`
 
 	// A description of the option
 	Help string `yaml:"help"`
@@ -453,7 +455,11 @@ func (app *application) updateCmdPreviewView() {
 					previewText.write(" " + regionInt(regionN, opt.mainFlag()))
 
 				} else {
-					previewText.write(" " + regionInt(regionN, opt.mainFlag()+" "+valuePreview))
+					sep := " "
+					if opt.Separator != "" {
+						sep = opt.Separator
+					}
+					previewText.write(" " + regionInt(regionN, opt.mainFlag()+sep+valuePreview))
 				}
 			} else {
 				previewText.write(" " + regionInt(regionN, valuePreview))
@@ -495,13 +501,18 @@ func (app *application) updateOptionsView() {
 			optsText.bold().write(" " + string(opt.prefix) + string(opt.key)).unbold()
 			optsText.write(" " + opt.Help + " (" + flags)
 
+			metavar := "value"
+			if opt.Metavar != "" {
+				metavar = opt.Metavar
+			}
+
 			switch opt.getType() {
 			case FLAG_TYPE_VALUE:
-				optsText.write(" <value>)")
+				optsText.write(" <" + metavar + ">)")
 			case FLAG_TYPE_VALUE_OPTIONAL:
-				// The string to display is "[value]", but an extra "[" needs to be
+				// The string to display is "[$metavar]", but an extra "[" needs to be
 				// added in order to prevent tview from interpreting it as a color tag.
-				optsText.write(" [value[])")
+				optsText.write(" [" + metavar + "[])")
 			case FLAG_TYPE_TOGGLE:
 				optsText.write(")")
 			}

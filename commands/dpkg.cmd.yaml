@@ -26,6 +26,10 @@ command:
   - flag: ["--set-selections"]
     help: "Set package selections from stdin."
     type: "toggle"
+  - flag: ["--log"]
+    separator: =
+    metavar: filename
+    help: "Log status changes and actions to <filename>."
   - flag: ["--clear-selections"]
     help: "Deselect every non-essential package."
     type: "toggle"
@@ -87,7 +91,7 @@ command:
   - flag: ["--force-help"]
     help: "Show help on forcing."
     type: "toggle"
-  - flag: ["-Dh", "--debug=help"]
+  - flag: ["-Dh", "--debug"]
     help: "Show help on debugging."
     type: "toggle"
   - flag: ["-?", "--help"]
@@ -96,19 +100,19 @@ command:
   - flag: ["--version"]
     help: "Show the version."
     type: "toggle"
-  - flag: ["--admindir=<directory>"]
+  - flag: ["--admindir"]
     help: "Use <directory> instead of /var/lib/dpkg."
-  - flag: ["--root=<directory>"]
+  - flag: ["--root"]
     help: "Install on a different root directory."
-  - flag: ["--instdir=<directory>"]
+  - flag: ["--instdir"]
     help: "Change installation dir without changing admin dir."
-  - flag: ["--pre-invoke=<command>"]
+  - flag: ["--pre-invoke"]
     help: "Set a pre-invoke hook."
-  - flag: ["--post-invoke=<command>"]
+  - flag: ["--post-invoke"]
     help: "Set a post-invoke hook."
-  - flag: ["--path-exclude=<pattern>"]
+  - flag: ["--path-exclude"]
     help: "Do not install paths which match a shell pattern."
-  - flag: ["--path-include=<pattern>"]
+  - flag: ["--path-include"]
     help: "Re-include a pattern after a previous exclusion."
   - flag: ["-O", "--selected-only"]
     help: "Skip packages not selected for install/upgrade."
@@ -125,7 +129,7 @@ command:
   - flag: ["--[no-]triggers"]
     help: "Skip or force consequential trigger processing."
     type: "toggle"
-  - flag: ["--verify-format=<format>"]
+  - flag: ["--verify-format"]
     help: "Verify output format (supported: 'rpm')."
   - flag: ["--no-pager"]
     help: "Disables the use of any pager."
@@ -135,21 +139,19 @@ command:
     type: "toggle"
   - flag: ["--no-act", "--dry-run", "--simulate"]
     help: "Just say what we would do - don't do it."
-  - flag: ["-D", "--debug=<octal>"]
+  - flag: ["-D", "--debug"]
     help: "Enable debugging (see -Dhelp or --debug=help)."
   - flag: ["--status-fd"]
     help: "Send status change updates to file descriptor <n>."
-  - flag: ["--status-logger=<command>"]
+  - flag: ["--status-logger"]
     help: "Send status change updates to <command>'s stdin."
-  - flag: ["--log=<filename>"]
-    help: "Log status changes and actions to <filename>."
-  - flag: ["--ignore-depends=<package>[,...]"]
+  - flag: ["--ignore-depends"]
     help: "Ignore dependencies involving <package>."
-  - flag: ["--force-<thing>[,...]"]
+  - flag: ["--force-<thing>"]
     help: "Override problems (see --force-help)."
-  - flag: ["--no-force-<thing>[,...]"]
+  - flag: ["--no-force-<thing>"]
     help: "Stop when problems encountered."
-  - flag: ["--refuse-<thing>[,...]"]
+  - flag: ["--refuse-<thing>"]
     help: "Ditto."
   - flag: ["--abort-after"]
     help: "Abort after encountering <n> errors."
