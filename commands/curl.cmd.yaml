@@ -38,10 +38,12 @@ command:
     type: toggle
   - flag: ["-X", "--request"]
     help: Specify request method
-    default: GET
+    completion:
+      values: ["GET", "POST", "DELETE", "PUT", "OPTIONS", "HEAD", "PATCH", "TRACE", "CONNECT"]
   - flag: ["-H", "--header"]
     help: Add custom header
     repeatable: true
+    placeholder: "Header: Value"
   - argument: url
     help: URL
 

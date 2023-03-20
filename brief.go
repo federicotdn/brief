@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"math"
 	"os"
+	"sort"
 	"strconv"
 	"strings"
 
@@ -37,6 +38,8 @@ const (
 	HELP_KEY   = '?'
 	CANCEL_KEY = tcell.KeyCtrlG
 	EXIT_KEY   = tcell.KeyCtrlX
+
+	MAX_COMPLETIONS = 40
 )
 
 type option struct {
@@ -45,13 +48,26 @@ type option struct {
 	Flags    []string `yaml:"flag"`
 	Argument string   `yaml:"argument"`
 
-	Help       string `yaml:"help"`
+	// Properties of the option itself
 	FlagType   string `yaml:"type"`
-	Default    string `yaml:"default"`
 	Repeatable bool   `yaml:"repeatable"`
 
+	// Properties to make querying for a value easier/quicker
+	Default     string           `yaml:"default"`
+	Placeholder string           `yaml:"placeholder"`
+	Completion  optionCompletion `yaml:"completion"`
+
+	// A description of the option
+	Help string `yaml:"help"`
+
+	// Runtime variables
 	key    rune
 	prefix rune
+}
+
+type optionCompletion struct {
+	Values []string `yaml:"values"`
+	Cmd    []string `yaml:"command"`
 }
 
 type optionValue struct {
@@ -76,16 +92,17 @@ type spec struct {
 }
 
 type application struct {
-	ui                *userInterface
-	sp                *spec
-	enabledCommands   []*command
-	environment       []string
-	lastPrefix        rune
-	tviewApp          *tview.Application
-	minibufferActive  bool
-	inputDoneCallback func(bool, string)
-	cursor            int
-	cursorMax         int
+	ui                    *userInterface
+	sp                    *spec
+	enabledCommands       []*command
+	environment           []string
+	lastPrefix            rune
+	tviewApp              *tview.Application
+	minibufferActive      bool
+	minibufferCompletions []string
+	inputDoneCallback     func(bool, string)
+	cursor                int
+	cursorMax             int
 }
 
 func isPrefix(r rune) bool {
@@ -167,6 +184,8 @@ func newApplication(sp *spec) *application {
 	app.ui.root.SetInputCapture(app.captureRootInput)
 	app.ui.minibuffer.SetInputCapture(app.captureMinibufferInput)
 	app.ui.minibuffer.SetDoneFunc(app.minibufferDone)
+	app.ui.minibuffer.SetAutocompleteFunc(app.minibufferAutocomplete)
+	app.ui.minibuffer.SetAutocompletedFunc(app.minibufferAutocompletedFunc)
 	app.tviewApp.SetRoot(app.ui.root, true)
 
 	app.clampCursor()
@@ -316,6 +335,7 @@ func (app *application) minibufferDone(key tcell.Key) {
 	app.ui.root.RemoveItem(app.ui.minibuffer)
 	app.tviewApp.SetFocus(app.ui.root)
 	app.minibufferActive = false
+	app.minibufferCompletions = nil
 	app.inputDoneCallback = nil
 
 	app.ui.root.AddItem(app.ui.messagesTextView, 1, 0, false)
@@ -323,7 +343,7 @@ func (app *application) minibufferDone(key tcell.Key) {
 	app.updateViews()
 }
 
-func (app *application) minibufferRead(prompt string, callback func(bool, string), default_ string, placeholder string) {
+func (app *application) minibufferRead(prompt string, callback func(bool, string), default_ string, placeholder string, completions []string) {
 	app.ui.root.RemoveItem(app.ui.messagesTextView)
 	app.ui.root.AddItem(app.ui.minibuffer, 1, 0, true)
 	app.ui.minibuffer.SetLabel(" " + prompt + " ")
@@ -331,7 +351,44 @@ func (app *application) minibufferRead(prompt string, callback func(bool, string
 	app.ui.minibuffer.SetPlaceholder(placeholder)
 	app.tviewApp.SetFocus(app.ui.minibuffer)
 	app.minibufferActive = true
+	app.minibufferCompletions = completions
 	app.inputDoneCallback = callback
+
+	if app.minibufferCompletions != nil {
+		app.ui.minibuffer.Autocomplete()
+	}
+}
+
+func (app *application) minibufferAutocomplete(currentText string) []string {
+	if app.minibufferCompletions == nil || len(app.minibufferCompletions) == 0 {
+		return nil
+	}
+
+	completions := []string{}
+	count := 0
+	for _, candidate := range app.minibufferCompletions {
+		match := strings.HasPrefix(strings.ToLower(candidate), strings.ToLower(currentText))
+
+		if match {
+			count += 1
+			if len(completions) < MAX_COMPLETIONS-1 {
+				completions = append(completions, candidate)
+			}
+		}
+	}
+
+	if count > len(completions) {
+		completions = append(completions, fmt.Sprintf(" [%v results omitted]", count-len(completions)))
+	}
+
+	return completions
+}
+
+func (app *application) minibufferAutocompletedFunc(text string, index, source int) bool {
+	if source != tview.AutocompletedNavigate {
+		app.ui.minibuffer.SetText(text)
+	}
+	return source == tview.AutocompletedEnter || source == tview.AutocompletedClick
 }
 
 func (app *application) showMessage(format string, a ...any) {
@@ -578,6 +635,13 @@ func (app *application) handleEnvvarKey() {
 		return
 	}
 
+	completions := []string{}
+	for _, val := range os.Environ() {
+		parts := strings.Split(val, "=")
+		completions = append(completions, parts[0]+"=")
+	}
+	sort.Strings(completions)
+
 	app.minibufferRead("value:", func(ok bool, val string) {
 		if ok {
 			parts := strings.Split(val, "=")
@@ -588,7 +652,7 @@ func (app *application) handleEnvvarKey() {
 			app.environment = append(app.environment, val)
 			app.cursor += 1
 		}
-	}, "", "VAR=VAL")
+	}, "", "VAR=VAL", completions)
 }
 
 func (app *application) handleLetterKeyNoPrefix(key rune) {
@@ -638,11 +702,17 @@ func (app *application) handleDigitKeyNoPrefix(key rune) {
 }
 
 func (app *application) promptOptionValue(cmd *command, opt *option) {
+	var completion []string
+
+	if len(opt.Completion.Values) > 0 {
+		completion = opt.Completion.Values
+	}
+
 	app.minibufferRead("value:", func(ok bool, val string) {
 		if ok {
 			app.addOptionValue(cmd, opt, val)
 		}
-	}, opt.Default, "")
+	}, opt.Default, opt.Placeholder, completion)
 }
 
 func (app *application) addOptionValue(cmd *command, opt *option, val string) {
