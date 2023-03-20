@@ -323,11 +323,12 @@ func (app *application) minibufferDone(key tcell.Key) {
 	app.updateViews()
 }
 
-func (app *application) minibufferRead(prompt string, callback func(bool, string), default_ string) {
+func (app *application) minibufferRead(prompt string, callback func(bool, string), default_ string, placeholder string) {
 	app.ui.root.RemoveItem(app.ui.messagesTextView)
 	app.ui.root.AddItem(app.ui.minibuffer, 1, 0, true)
-	app.ui.minibuffer.SetLabel(prompt + " ")
+	app.ui.minibuffer.SetLabel(" " + prompt + " ")
 	app.ui.minibuffer.SetText(default_)
+	app.ui.minibuffer.SetPlaceholder(placeholder)
 	app.tviewApp.SetFocus(app.ui.minibuffer)
 	app.minibufferActive = true
 	app.inputDoneCallback = callback
@@ -577,7 +578,7 @@ func (app *application) handleEnvvarKey() {
 		return
 	}
 
-	app.minibufferRead("value (VAR=VAL):", func(ok bool, val string) {
+	app.minibufferRead("value:", func(ok bool, val string) {
 		if ok {
 			parts := strings.Split(val, "=")
 			if len(parts) == 1 || len(parts[0]) == 0 {
@@ -587,7 +588,7 @@ func (app *application) handleEnvvarKey() {
 			app.environment = append(app.environment, val)
 			app.cursor += 1
 		}
-	}, "")
+	}, "", "VAR=VAL")
 }
 
 func (app *application) handleLetterKeyNoPrefix(key rune) {
@@ -641,7 +642,7 @@ func (app *application) promptOptionValue(cmd *command, opt *option) {
 		if ok {
 			app.addOptionValue(cmd, opt, val)
 		}
-	}, opt.Default)
+	}, opt.Default, "")
 }
 
 func (app *application) addOptionValue(cmd *command, opt *option, val string) {
