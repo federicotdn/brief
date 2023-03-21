@@ -1,0 +1,17 @@
+specVersion: 1.0.0
+command:
+  name: kubectl
+  version: 1.23.17
+  options:
+  - flag: ["--help"]
+    help: Show kubectl help
+    type: toggle
+  subcommands:
+  - name: get
+    help: Display one or many resources
+    options: []
+  - name: create
+    help: Create a resource from a file or from stdin
+    options: []
+  - name: version
+    help: Print the client and server version information

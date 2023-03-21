@@ -20,7 +20,7 @@ import (
 var commandSpecs embed.FS
 
 const (
-	SPEC_VERSION        = "v1"
+	SPEC_VERSION        = "1.0.0"
 	COMMANDS_DIR        = "commands/"
 	COMMAND_SPEC_SUFFIX = ".cmd.yaml"
 
@@ -77,15 +77,22 @@ type optionValue struct {
 	value string
 }
 
-type command struct {
-	Name        string     `yaml:"name"`
-	Version     string     `yaml:"version"`
-	Subcommands []*command `yaml:"subcommands"`
-	Options     []*option  `yaml:"options"`
-	Help        string     `yaml:"help"`
+type subcommand struct {
+	Name        string        `yaml:"name"`
+	Subcommands []*subcommand `yaml:"subcommands"`
+	Options     []*option     `yaml:"options"`
+	Help        string        `yaml:"help"`
 
 	key       rune
 	optValues []*optionValue
+}
+
+type command struct {
+	Name        string        `yaml:"name"`
+	Version     string        `yaml:"version"`
+	Subcommands []*subcommand `yaml:"subcommands"`
+	Options     []*option     `yaml:"options"`
+	Help        string        `yaml:"help"`
 }
 
 type spec struct {
@@ -96,7 +103,7 @@ type spec struct {
 type application struct {
 	ui                    *userInterface
 	sp                    *spec
-	enabledCommands       []*command
+	enabledCommands       []*subcommand
 	environment           []string
 	lastPrefix            rune
 	tviewApp              *tview.Application
@@ -146,11 +153,11 @@ func (opt *option) mainFlag() string {
 	return opt.Flags[0]
 }
 
-func (cmd *command) deleteOptionValueAt(index int) {
+func (cmd *subcommand) deleteOptionValueAt(index int) {
 	cmd.optValues = append(cmd.optValues[:index], cmd.optValues[index+1:]...)
 }
 
-func (cmd *command) deleteOptionValuesFor(opt *option) {
+func (cmd *subcommand) deleteOptionValuesFor(opt *option) {
 	if len(cmd.optValues) == 0 {
 		return
 	}
@@ -164,7 +171,7 @@ func (cmd *command) deleteOptionValuesFor(opt *option) {
 	cmd.optValues = newValues
 }
 
-func (cmd *command) optionValueCount(opt *option) uint {
+func (cmd *subcommand) optionValueCount(opt *option) uint {
 	var total uint
 	for _, val := range cmd.optValues {
 		if val.opt == opt {
@@ -175,10 +182,17 @@ func (cmd *command) optionValueCount(opt *option) uint {
 }
 
 func newApplication(sp *spec) *application {
+	root := subcommand{
+		Name:        sp.Command.Name,
+		Subcommands: sp.Command.Subcommands,
+		Options:     sp.Command.Options,
+		Help:        sp.Command.Help,
+	}
+
 	app := application{
 		ui:              newUserInterface(),
 		sp:              sp,
-		enabledCommands: []*command{&sp.Command},
+		enabledCommands: []*subcommand{&root},
 		tviewApp:        tview.NewApplication(),
 		cursor:          math.MaxInt,
 	}
@@ -197,7 +211,7 @@ func newApplication(sp *spec) *application {
 	return &app
 }
 
-func (app *application) visibleCommands() []*command {
+func (app *application) visibleCommands() []*subcommand {
 	return app.enabledCommands[len(app.enabledCommands)-1].Subcommands
 }
 
@@ -712,7 +726,7 @@ func (app *application) handleDigitKeyNoPrefix(key rune) {
 	}
 }
 
-func (app *application) promptOptionValue(cmd *command, opt *option) {
+func (app *application) promptOptionValue(cmd *subcommand, opt *option) {
 	var completion []string
 
 	if len(opt.Completion.Values) > 0 {
@@ -726,7 +740,7 @@ func (app *application) promptOptionValue(cmd *command, opt *option) {
 	}, opt.Default, opt.Placeholder, completion)
 }
 
-func (app *application) addOptionValue(cmd *command, opt *option, val string) {
+func (app *application) addOptionValue(cmd *subcommand, opt *option, val string) {
 	cmd.optValues = append(cmd.optValues, &optionValue{opt: opt, value: val})
 	app.cursor = app.cursorMax + 1
 }

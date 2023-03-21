@@ -1,4 +1,4 @@
-specVersion: v1
+specVersion: 1.0.0
 command:
   name: docker
   version: 23.0.1

@@ -1,4 +1,4 @@
-specVersion: v1
+specVersion: 1.0.0
 command:
   name: emacs
   version: 28.1

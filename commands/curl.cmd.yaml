@@ -1,4 +1,4 @@
-specVersion: v1
+specVersion: 1.0.0
 command:
   name: curl
   version: 7.81.0
