@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"math"
 	"os"
+	"regexp"
 	"sort"
 	"strconv"
 	"strings"
@@ -73,8 +74,16 @@ type optionCompletion struct {
 }
 
 type optionValue struct {
-	opt   *option
+	// The option this struct represents a value for
+	opt *option
+	// The value itself
 	value string
+	// If this optionValue corresponds to a flag option,
+	// and the flag option is is a template (e.g.
+	// --validate-<thing>), then this variable contains
+	// the completed version of the flag. Otherwise, it
+	// contains the empty string.
+	flag string
 }
 
 type subcommand struct {
@@ -133,23 +142,41 @@ func (opt *option) isArgument() bool {
 	return !opt.isFlag()
 }
 
+func (opt *option) isTemplate() bool {
+	match, err := regexp.MatchString("<.+?>", opt.longFlag())
+	if err != nil {
+		panic(err)
+	}
+
+	return match
+}
+
 func (opt *option) longFlag() string {
 	if !opt.isFlag() {
 		panic("option is not a flag")
 	}
-	for _, flag := range opt.Flags {
-		// Return the first long flag, that is:
+
+	flags := make([]string, len(opt.Flags))
+	copy(flags, opt.Flags)
+	sort.Strings(flags)
+
+	for _, flag := range flags {
+		// Return the first long flag in alphabetical order:
 		//  --foobar or -foobar (yes)
-		//  -f       (no)
+		//  -f                  (no)
 		if len(flag) > 2 {
 			return flag
 		}
 	}
-	// No long flag was found, simply use the first one
-	return opt.Flags[0]
+	// No long flag was found, return the empty string
+	return ""
 }
 
 func (opt *option) mainFlag() string {
+	if !opt.isFlag() {
+		panic("option is not a flag")
+	}
+
 	return opt.Flags[0]
 }
 
@@ -346,16 +373,17 @@ func (app *application) assignCommandKeys() {
 }
 
 func (app *application) minibufferDone(key tcell.Key) {
-	app.inputDoneCallback(key == tcell.KeyEnter, app.ui.minibuffer.GetText())
-
 	app.ui.root.RemoveItem(app.ui.minibuffer)
 	app.tviewApp.SetFocus(app.ui.root)
 	app.minibufferActive = false
 	app.minibufferCompletions = nil
-	app.inputDoneCallback = nil
 
 	app.ui.root.AddItem(app.ui.messagesTextView, 1, 0, false)
 
+	// Invoke the callback after clearing all state, as the callback
+	// may call minibufferRead again. This happens in cases where
+	// two consecutive values need to be read.
+	app.inputDoneCallback(key == tcell.KeyEnter, app.ui.minibuffer.GetText())
 	app.updateViews()
 }
 
@@ -464,16 +492,20 @@ func (app *application) updateCmdPreviewView() {
 			}
 
 			if opt.isFlag() {
+				flagText := opt.mainFlag()
+				if val.flag != "" {
+					flagText = val.flag
+				}
+
 				if opt.FlagType == FLAG_TYPE_TOGGLE ||
 					(opt.FlagType == FLAG_TYPE_VALUE_OPTIONAL && val.value == "") {
-					previewText.write(" " + regionInt(regionN, opt.mainFlag()))
-
+					previewText.write(" " + regionInt(regionN, flagText))
 				} else {
 					sep := " "
 					if opt.Separator != "" {
 						sep = opt.Separator
 					}
-					previewText.write(" " + regionInt(regionN, opt.mainFlag()+sep+valuePreview))
+					previewText.write(" " + regionInt(regionN, flagText+sep+valuePreview))
 				}
 			} else {
 				previewText.write(" " + regionInt(regionN, valuePreview))
@@ -733,15 +765,33 @@ func (app *application) promptOptionValue(cmd *subcommand, opt *option) {
 		completion = opt.Completion.Values
 	}
 
+	if opt.isFlag() && opt.isTemplate() {
+		// Handle flags like --validate-<thing> (template)
+		app.minibufferRead("flag:", func(ok bool, val string) {
+			if !ok || strings.HasPrefix(val, "-") {
+				return
+			}
+
+			app.minibufferRead("value:", func(ok bool, val2 string) {
+				if ok {
+					app.addOptionValue(cmd, opt, val2, val)
+				}
+			}, opt.Default, opt.Placeholder, completion)
+
+		}, opt.longFlag(), "", nil)
+
+		return
+	}
+
 	app.minibufferRead("value:", func(ok bool, val string) {
 		if ok {
-			app.addOptionValue(cmd, opt, val)
+			app.addOptionValue(cmd, opt, val, "")
 		}
 	}, opt.Default, opt.Placeholder, completion)
 }
 
-func (app *application) addOptionValue(cmd *subcommand, opt *option, val string) {
-	cmd.optValues = append(cmd.optValues, &optionValue{opt: opt, value: val})
+func (app *application) addOptionValue(cmd *subcommand, opt *option, val string, flag string) {
+	cmd.optValues = append(cmd.optValues, &optionValue{opt: opt, value: val, flag: flag})
 	app.cursor = app.cursorMax + 1
 }
 
@@ -760,7 +810,7 @@ func (app *application) handleLetterDigitKeyWithPrefix(key rune) {
 				} else {
 					if cmd.optionValueCount(opt) == 0 {
 						if opt.getType() == FLAG_TYPE_TOGGLE {
-							app.addOptionValue(cmd, opt, "")
+							app.addOptionValue(cmd, opt, "", "")
 						} else {
 							app.promptOptionValue(cmd, opt)
 						}

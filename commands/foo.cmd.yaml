@@ -1,0 +1,51 @@
+specVersion: 1.0.0
+command:
+  name: foo
+  version: 1.0.0
+  help: The foo command allows quick testing of the brief interface
+  options:
+  - flag: ["--help"]
+    help: Show foo help
+    type: toggle
+  subcommands:
+  - name: bar
+    help: The bar subcommand
+    options:
+    - flag: ["-t", "--toggle", "-toggle"]
+      help: Test how toggle flags work
+      type: toggle
+    - flag: ["--validate-<thing>"]
+      help: Test how template flags work
+    - flag: ["-o", "--optional"]
+      help: Test how optional value flags work
+      type: valueOptional
+    - flag: ["-s", "--sep"]
+      help: Test how value separators work
+      separator: =
+    - flag: ["-d"]
+      help: Test how default values work
+      default: foobar
+    - flag: ["--placeholder"]
+      help: Test how placeholders work
+      placeholder: some-placeholder
+    - flag: ["--metavar"]
+      help: Test how metavars work
+      metavar: custom
+    - flag: ["--letters"]
+      help: Ensure flags are assigned different letters
+    - flag: ["--letters-two"]
+      help: Ensure flags are assigned different letters (again)
+    - flag: ["-r"]
+      help: Test how repeatable flags work
+      repeatable: true
+    - flag: ["--comp-list"]
+      help: Test how values completion works
+      completion:
+        values: ["one", "two", "three", "four"]
+    - argument: first
+      help: Test how positional arguments work
+    - argument: second
+      help: Test how repeatable positional arguments work
+      repeatable: true
+  - name: quuz
+    help: The quuz subcommand (no options)
