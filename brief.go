@@ -41,6 +41,8 @@ const (
 	EXIT_KEY   = tcell.KeyCtrlX
 
 	MAX_COMPLETIONS = 40
+
+	KEY_COLOR = "deeppink"
 )
 
 type option struct {
@@ -248,6 +250,11 @@ func (app *application) updateKeys() {
 	app.assignArgumentKeys()
 }
 
+func (app *application) getHeight() int {
+	_, _, _, height := app.ui.root.GetRect()
+	return height
+}
+
 func (app *application) assignArgumentKeys() {
 	used := make(map[rune]struct{})
 
@@ -415,7 +422,10 @@ func (app *application) minibufferAutocomplete(currentText string) []string {
 
 		if match {
 			count += 1
-			if len(completions) < MAX_COMPLETIONS-1 {
+			height := app.getHeight()
+			// By substracting 3 we leave some space on top and below the list to
+			// make the presentation nicer.
+			if len(completions) < height-3 {
 				completions = append(completions, candidate)
 			}
 		}
@@ -447,13 +457,13 @@ func (app *application) updateSubcommandsView() {
 		cmdText.dim()
 	}
 
-	cmdText.bold().write(" " + string(ENVVAR_KEY)).unbold()
-	cmdText.write(" add environment variable\n")
-	cmdText.bold().write(" " + string(HELP_KEY)).unbold()
-	cmdText.write(" show help for brief\n\n")
+	cmdText.color(KEY_COLOR).bold().write(" " + string(ENVVAR_KEY)).unbold().nocolor()
+	cmdText.write("  add environment variable\n")
+	cmdText.color(KEY_COLOR).bold().write(" " + string(HELP_KEY)).unbold().nocolor()
+	cmdText.write("  show help for brief\n\n")
 
 	for _, cmd := range commands {
-		cmdText.bold().write(" " + string(cmd.key) + " ").unbold()
+		cmdText.color(KEY_COLOR).bold().write(" " + string(cmd.key) + "  ").unbold().nocolor()
 		cmdText.write(cmd.Name)
 		if cmd.Help != "" {
 			cmdText.write(" - " + cmd.Help + "")
@@ -544,8 +554,11 @@ func (app *application) updateOptionsView() {
 				optsText.dim()
 			}
 
+			optsText.color(KEY_COLOR)
 			optsText.bold().write(" " + string(opt.prefix) + string(opt.key)).unbold()
-			optsText.write(" " + opt.Help + " (" + flags)
+			optsText.nocolor()
+			optsText.write("  " + opt.Help)
+			optsText.dim().write(" (" + flags)
 
 			metavar := "value"
 			if opt.Metavar != "" {
@@ -588,8 +601,8 @@ func (app *application) updateOptionsView() {
 				optsText.dim()
 			}
 
-			optsText.bold().write("  " + string(opt.key)).unbold()
-			optsText.write(" " + opt.Help + "\n")
+			optsText.color(KEY_COLOR).bold().write("  " + string(opt.key)).unbold().nocolor()
+			optsText.write("  " + opt.Help + "\n")
 			optsText.undim()
 		}
 

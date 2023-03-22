@@ -7,13 +7,20 @@ command:
   - flag: ["--help"]
     help: Show foo help
     type: toggle
+  - flag: ["--version"]
+    help: Show foo version
+    type: toggle
   subcommands:
   - name: bar
     help: The bar subcommand
     options:
-    - flag: ["-t", "--toggle", "-toggle"]
+    - flag: ["-t", "--toggle"]
       help: Test how toggle flags work
       type: toggle
+    - flag: ["-golang"]
+      help: Test how Go-style flags work
+    - flag: ["+dig"]
+      help: Test how dig-style flags work
     - flag: ["--validate-<thing>"]
       help: Test how template flags work
     - flag: ["-o", "--optional"]

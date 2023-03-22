@@ -19,6 +19,7 @@ type userInterface struct {
 type uiText struct {
 	builder *strings.Builder
 	flags   map[rune]struct{}
+	color_   string
 }
 
 func NewUIText() *uiText {
@@ -48,7 +49,7 @@ func (txt *uiText) writeFlags() {
 		i++
 	}
 
-	txt.write(fmt.Sprintf("[::-][::%v]", string(keys)))
+	txt.write(fmt.Sprintf("[-::-][%v::%v]", txt.color_, string(keys)))
 }
 
 func (txt *uiText) applyFlag(flag rune) *uiText {
@@ -85,6 +86,16 @@ func (txt *uiText) dim() *uiText {
 
 func (txt *uiText) undim() *uiText {
 	return txt.removeFlag('d')
+}
+
+func (txt *uiText) color(c string) *uiText {
+	txt.color_ = c
+	txt.writeFlags()
+	return txt
+}
+
+func (txt *uiText) nocolor() *uiText {
+	return txt.color("")
 }
 
 func regionInt(id int, contents string) string {
