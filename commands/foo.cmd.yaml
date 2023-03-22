@@ -22,6 +22,9 @@ command:
     - flag: ["-s", "--sep"]
       help: Test how value separators work
       separator: =
+    - flag: ["--sep-two"]
+      help: Test how value separators work (no short flag)
+      separator: =
     - flag: ["-d"]
       help: Test how default values work
       default: foobar

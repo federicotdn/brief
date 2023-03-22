@@ -552,13 +552,20 @@ func (app *application) updateOptionsView() {
 				metavar = opt.Metavar
 			}
 
+			sep := " "
+			if opt.Separator != "" {
+				sep = opt.Separator
+			}
+
 			switch opt.getType() {
 			case FLAG_TYPE_VALUE:
-				optsText.write(" <" + metavar + ">)")
+				optsText.write(sep)
+				optsText.write("<" + metavar + ">)")
 			case FLAG_TYPE_VALUE_OPTIONAL:
 				// The string to display is "[$metavar]", but an extra "[" needs to be
 				// added in order to prevent tview from interpreting it as a color tag.
-				optsText.write(" [" + metavar + "[])")
+				optsText.write(sep)
+				optsText.write("[" + metavar + "[])")
 			case FLAG_TYPE_TOGGLE:
 				optsText.write(")")
 			}
