@@ -42,7 +42,8 @@ const (
 
 	MAX_COMPLETIONS = 40
 
-	KEY_COLOR = "deeppink"
+	KEY_COLOR    = "deeppink"
+	ARG_ON_COLOR = "orange"
 )
 
 type option struct {
@@ -200,14 +201,13 @@ func (cmd *subcommand) deleteOptionValuesFor(opt *option) {
 	cmd.optValues = newValues
 }
 
-func (cmd *subcommand) optionValueCount(opt *option) uint {
-	var total uint
+func (cmd *subcommand) isOptionEnabled(opt *option) bool {
 	for _, val := range cmd.optValues {
 		if val.opt == opt {
-			total += 1
+			return true
 		}
 	}
-	return total
+	return false
 }
 
 func newApplication(sp *spec) *application {
@@ -457,13 +457,13 @@ func (app *application) updateSubcommandsView() {
 		cmdText.dim()
 	}
 
-	cmdText.color(KEY_COLOR).bold().write(" " + string(ENVVAR_KEY)).unbold().nocolor()
+	cmdText.color(KEY_COLOR).bold().write(" " + string(ENVVAR_KEY)).reset()
 	cmdText.write("  add environment variable\n")
-	cmdText.color(KEY_COLOR).bold().write(" " + string(HELP_KEY)).unbold().nocolor()
+	cmdText.color(KEY_COLOR).bold().write(" " + string(HELP_KEY)).reset()
 	cmdText.write("  show help for brief\n\n")
 
 	for _, cmd := range commands {
-		cmdText.color(KEY_COLOR).bold().write(" " + string(cmd.key) + "  ").unbold().nocolor()
+		cmdText.color(KEY_COLOR).bold().write(" " + string(cmd.key) + "  ").reset()
 		cmdText.write(cmd.Name)
 		if cmd.Help != "" {
 			cmdText.write(" - " + cmd.Help + "")
@@ -558,6 +558,11 @@ func (app *application) updateOptionsView() {
 			optsText.bold().write(" " + string(opt.prefix) + string(opt.key)).unbold()
 			optsText.nocolor()
 			optsText.write("  " + opt.Help)
+
+			if cmd.isOptionEnabled(opt) {
+				optsText.italic().color(ARG_ON_COLOR)
+			}
+
 			optsText.dim().write(" (" + flags)
 
 			metavar := "value"
@@ -588,8 +593,8 @@ func (app *application) updateOptionsView() {
 				optsText.write(" [repeatable[]")
 			}
 
+			optsText.reset()
 			optsText.write("\n")
-			optsText.undim()
 		}
 
 		for _, opt := range cmd.Options {
@@ -601,9 +606,26 @@ func (app *application) updateOptionsView() {
 				optsText.dim()
 			}
 
+			metavar := "value"
+			if opt.Metavar != "" {
+				metavar = opt.Metavar
+			}
+
 			optsText.color(KEY_COLOR).bold().write("  " + string(opt.key)).unbold().nocolor()
-			optsText.write("  " + opt.Help + "\n")
-			optsText.undim()
+			optsText.write("  " + opt.Help)
+
+			if cmd.isOptionEnabled(opt) {
+				optsText.italic().color(ARG_ON_COLOR)
+			}
+
+			optsText.dim().write(" (<" + metavar + ">)")
+
+			if opt.Repeatable {
+				optsText.write(" [repeatable[]")
+			}
+
+			optsText.reset()
+			optsText.write("\n")
 		}
 
 		optsText.write("\n")
@@ -758,7 +780,7 @@ func (app *application) handleDigitKeyNoPrefix(key rune) {
 			}
 
 			if opt.key == key {
-				if cmd.optionValueCount(opt) == 0 || opt.Repeatable {
+				if !cmd.isOptionEnabled(opt) || opt.Repeatable {
 					app.promptOptionValue(cmd, opt)
 				} else {
 					cmd.deleteOptionValuesFor(opt)
@@ -788,7 +810,7 @@ func (app *application) promptOptionValue(cmd *subcommand, opt *option) {
 	if opt.isFlag() && opt.isTemplate() {
 		// Handle flags like --validate-<thing> (template)
 		app.minibufferRead("flag:", func(ok bool, val string) {
-			if !ok || strings.HasPrefix(val, "-") {
+			if !ok || !strings.HasPrefix(val, "-") {
 				return
 			}
 
@@ -828,7 +850,7 @@ func (app *application) handleLetterDigitKeyWithPrefix(key rune) {
 				if opt.Repeatable {
 					app.promptOptionValue(cmd, opt)
 				} else {
-					if cmd.optionValueCount(opt) == 0 {
+					if !cmd.isOptionEnabled(opt) {
 						if opt.getType() == FLAG_TYPE_TOGGLE {
 							app.addOptionValue(cmd, opt, "", "")
 						} else {

@@ -88,6 +88,14 @@ func (txt *uiText) undim() *uiText {
 	return txt.removeFlag('d')
 }
 
+func (txt *uiText) italic() *uiText {
+	return txt.applyFlag('i')
+}
+
+func (txt *uiText) noitalic() *uiText {
+	return txt.removeFlag('i')
+}
+
 func (txt *uiText) color(c string) *uiText {
 	txt.color_ = c
 	txt.writeFlags()
@@ -96,6 +104,10 @@ func (txt *uiText) color(c string) *uiText {
 
 func (txt *uiText) nocolor() *uiText {
 	return txt.color("")
+}
+
+func (txt *uiText) reset() *uiText {
+	return txt.undim().unbold().noitalic().nocolor()
 }
 
 func regionInt(id int, contents string) string {
