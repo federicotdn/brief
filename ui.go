@@ -11,38 +11,62 @@ type userInterface struct {
 	cmdPreviewTextView  *tview.TextView
 	subcommandsTextView *tview.TextView
 	optionsPages        *tview.Pages
+	optionsFlex         *tview.Flex
 	minibuffer          *tview.InputField
 	messagesTextView    *tview.TextView
 	root                *tview.Flex
 }
 
 type uiText struct {
-	builder *strings.Builder
-	flags   map[rune]struct{}
-	color_  string
-	Lines   int
+	builders      []*strings.Builder
+	flags         map[rune]struct{}
+	color_        string
+	maxHeight     int
+	currentHeight int
+	i             int
+	paginated     bool
 }
 
-func NewUIText() *uiText {
+func NewUIText(paginated bool, maxHeight int) *uiText {
 	return &uiText{
-		builder: &strings.Builder{},
-		flags:   make(map[rune]struct{}),
-		Lines:   1,
+		flags:         make(map[rune]struct{}),
+		maxHeight:     maxHeight,
+		currentHeight: 1,
+		paginated:     paginated,
 	}
 }
 
 func (txt *uiText) write(s string) *uiText {
-	_, err := txt.builder.WriteString(s)
+	for len(txt.builders)-1 < txt.i {
+		txt.builders = append(txt.builders, &strings.Builder{})
+	}
+
+	_, err := txt.builders[txt.i].WriteString(s)
 	if err != nil {
 		panic(err)
 	}
-
-	txt.Lines += strings.Count(s, "\n")
 	return txt
 }
 
-func (txt *uiText) String() string {
-	return txt.builder.String()
+func (txt *uiText) nl() *uiText {
+	if txt.paginated && txt.currentHeight == txt.maxHeight {
+		txt.i++
+		txt.currentHeight = 0
+	} else {
+		txt.write("\n")
+		txt.currentHeight++
+	}
+
+	return txt
+}
+
+func (txt *uiText) pagesCount() int {
+	return len(txt.builders)
+}
+
+func (txt *uiText) page(i int) string {
+	s := txt.builders[i].String()
+	return s
 }
 
 func (txt *uiText) writeFlags() {
@@ -176,6 +200,7 @@ func newUserInterface() *userInterface {
 		cmdPreviewTextView:  cmdPreviewTextView,
 		subcommandsTextView: subcommandsTextView,
 		optionsPages:        optionsPages,
+		optionsFlex:         optionsFlex,
 		minibuffer:          minibuffer,
 		messagesTextView:    messagesTextView,
 	}

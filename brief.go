@@ -447,7 +447,7 @@ func (app *application) showMessage(format string, a ...any) {
 
 func (app *application) updateSubcommandsView() {
 	commands := app.visibleCommands()
-	cmdText := NewUIText()
+	cmdText := NewUIText(false, 0)
 
 	if app.lastPrefix != 0 {
 		cmdText.dim()
@@ -467,11 +467,11 @@ func (app *application) updateSubcommandsView() {
 		cmdText.write("\n")
 	}
 
-	app.ui.subcommandsTextView.SetText(cmdText.String())
+	app.ui.subcommandsTextView.SetText(cmdText.page(0))
 }
 
 func (app *application) updateCmdPreviewView() {
-	previewText := NewUIText()
+	previewText := NewUIText(false, 0)
 	regionN := 0
 
 	for i, env := range app.environment {
@@ -524,26 +524,28 @@ func (app *application) updateCmdPreviewView() {
 	// Cursor can move one extra place to the right
 	previewText.write(" " + regionInt(regionN, " "))
 
-	app.ui.cmdPreviewTextView.SetText(previewText.String())
+	app.ui.cmdPreviewTextView.SetText(previewText.page(0))
 	app.ui.cmdPreviewTextView.Highlight(strconv.Itoa(app.cursor))
+}
+
+func (app *application) updateOptionsTitle() {
+	front, _ := app.ui.optionsPages.GetFrontPage()
+	i, _ := strconv.Atoi(front)
+	count := app.ui.optionsPages.GetPageCount()
+	app.ui.optionsFlex.SetTitle(fmt.Sprintf("Options (page %v of %v)", i+1, count))
 }
 
 func (app *application) updateOptionsView() {
 	_, _, _, pagesHeight := app.ui.optionsPages.GetRect()
 	front, _ := app.ui.optionsPages.GetFrontPage()
-	if front == "" {
-		front = "0"
-	}
-
-	optsText := NewUIText()
-	pages := []*uiText{optsText}
+	optsText := NewUIText(true, pagesHeight)
 
 	for _, cmd := range app.enabledCommands {
 		if len(cmd.Options) == 0 {
 			continue
 		}
 
-		optsText.bold().write(cmd.Name + ":\n").unbold()
+		optsText.bold().write(cmd.Name + ":").nl().unbold()
 
 		for _, opt := range cmd.Options {
 			if !opt.isFlag() {
@@ -596,14 +598,7 @@ func (app *application) updateOptionsView() {
 				optsText.write(" [repeatable[]")
 			}
 
-			optsText.reset()
-
-			if optsText.Lines >= pagesHeight {
-				optsText = NewUIText()
-				pages = append(pages, optsText)
-			} else {
-				optsText.write("\n")
-			}
+			optsText.reset().nl()
 		}
 
 		for _, opt := range cmd.Options {
@@ -633,17 +628,10 @@ func (app *application) updateOptionsView() {
 				optsText.write(" [repeatable[]")
 			}
 
-			optsText.reset()
-
-			if optsText.Lines >= pagesHeight {
-				optsText = NewUIText()
-				pages = append(pages, optsText)
-			} else {
-				optsText.write("\n")
-			}
+			optsText.reset().nl()
 		}
 
-		optsText.write("\n")
+		optsText.nl()
 	}
 
 	count := app.ui.optionsPages.GetPageCount()
@@ -651,10 +639,11 @@ func (app *application) updateOptionsView() {
 		app.ui.optionsPages.RemovePage(strconv.Itoa(i))
 	}
 
-	for i, page := range pages {
+	for i := 0; i < optsText.pagesCount(); i++ {
 		view := tview.NewTextView()
 		view.SetDynamicColors(true)
-		view.SetText(page.String())
+		view.SetWrap(false)
+		view.SetText(optsText.page(i))
 
 		app.ui.optionsPages.AddPage(strconv.Itoa(i), view, true, true)
 	}
@@ -669,6 +658,7 @@ func (app *application) updateOptionsView() {
 func (app *application) updateViews() {
 	app.updateSubcommandsView()
 	app.updateOptionsView()
+	app.updateOptionsTitle()
 	app.updateCmdPreviewView()
 }
 
