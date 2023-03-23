@@ -10,7 +10,7 @@ import (
 type userInterface struct {
 	cmdPreviewTextView  *tview.TextView
 	subcommandsTextView *tview.TextView
-	optionsTextView     *tview.TextView
+	optionsPages        *tview.Pages
 	minibuffer          *tview.InputField
 	messagesTextView    *tview.TextView
 	root                *tview.Flex
@@ -19,13 +19,15 @@ type userInterface struct {
 type uiText struct {
 	builder *strings.Builder
 	flags   map[rune]struct{}
-	color_   string
+	color_  string
+	Lines   int
 }
 
 func NewUIText() *uiText {
 	return &uiText{
 		builder: &strings.Builder{},
 		flags:   make(map[rune]struct{}),
+		Lines:   1,
 	}
 }
 
@@ -34,6 +36,8 @@ func (txt *uiText) write(s string) *uiText {
 	if err != nil {
 		panic(err)
 	}
+
+	txt.Lines += strings.Count(s, "\n")
 	return txt
 }
 
@@ -149,10 +153,8 @@ func newUserInterface() *userInterface {
 	optionsFlex.SetTitle("Options")
 	optionsFlex.SetTitleAlign(tview.AlignLeft)
 
-	optionsTextView := tview.NewTextView()
-	optionsTextView.SetDynamicColors(true)
-
-	optionsFlex.AddItem(optionsTextView, 0, 1, false)
+	optionsPages := tview.NewPages()
+	optionsFlex.AddItem(optionsPages, 0, 1, false)
 
 	bottomFlex := tview.NewFlex()
 
@@ -173,7 +175,7 @@ func newUserInterface() *userInterface {
 		root:                root,
 		cmdPreviewTextView:  cmdPreviewTextView,
 		subcommandsTextView: subcommandsTextView,
-		optionsTextView:     optionsTextView,
+		optionsPages:        optionsPages,
 		minibuffer:          minibuffer,
 		messagesTextView:    messagesTextView,
 	}

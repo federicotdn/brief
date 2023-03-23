@@ -233,10 +233,6 @@ func newApplication(sp *spec) *application {
 	app.ui.minibuffer.SetAutocompletedFunc(app.minibufferAutocompletedFunc)
 	app.tviewApp.SetRoot(app.ui.root, true)
 
-	app.clampCursor()
-	app.updateKeys()
-	app.updateViews()
-
 	return &app
 }
 
@@ -421,7 +417,7 @@ func (app *application) minibufferAutocomplete(currentText string) []string {
 		match := strings.HasPrefix(strings.ToLower(candidate), strings.ToLower(currentText))
 
 		if match {
-			count += 1
+			count++
 			height := app.getHeight()
 			// By substracting 3 we leave some space on top and below the list to
 			// make the presentation nicer.
@@ -533,14 +529,21 @@ func (app *application) updateCmdPreviewView() {
 }
 
 func (app *application) updateOptionsView() {
+	_, _, _, pagesHeight := app.ui.optionsPages.GetRect()
+	front, _ := app.ui.optionsPages.GetFrontPage()
+	if front == "" {
+		front = "0"
+	}
+
 	optsText := NewUIText()
+	pages := []*uiText{optsText}
 
 	for _, cmd := range app.enabledCommands {
 		if len(cmd.Options) == 0 {
 			continue
 		}
 
-		optsText.write(cmd.Name + ":\n")
+		optsText.bold().write(cmd.Name + ":\n").unbold()
 
 		for _, opt := range cmd.Options {
 			if !opt.isFlag() {
@@ -594,7 +597,13 @@ func (app *application) updateOptionsView() {
 			}
 
 			optsText.reset()
-			optsText.write("\n")
+
+			if optsText.Lines >= pagesHeight {
+				optsText = NewUIText()
+				pages = append(pages, optsText)
+			} else {
+				optsText.write("\n")
+			}
 		}
 
 		for _, opt := range cmd.Options {
@@ -625,13 +634,36 @@ func (app *application) updateOptionsView() {
 			}
 
 			optsText.reset()
-			optsText.write("\n")
+
+			if optsText.Lines >= pagesHeight {
+				optsText = NewUIText()
+				pages = append(pages, optsText)
+			} else {
+				optsText.write("\n")
+			}
 		}
 
 		optsText.write("\n")
 	}
 
-	app.ui.optionsTextView.SetText(optsText.String())
+	count := app.ui.optionsPages.GetPageCount()
+	for i := 0; i < count; i++ {
+		app.ui.optionsPages.RemovePage(strconv.Itoa(i))
+	}
+
+	for i, page := range pages {
+		view := tview.NewTextView()
+		view.SetDynamicColors(true)
+		view.SetText(page.String())
+
+		app.ui.optionsPages.AddPage(strconv.Itoa(i), view, true, true)
+	}
+
+	if app.ui.optionsPages.HasPage(front) {
+		app.ui.optionsPages.SwitchToPage(front)
+	} else {
+		app.ui.optionsPages.SwitchToPage("0")
+	}
 }
 
 func (app *application) updateViews() {
@@ -749,7 +781,7 @@ func (app *application) handleEnvvarKey() {
 				return
 			}
 			app.environment = append(app.environment, val)
-			app.cursor += 1
+			app.cursor++
 		}
 	}, "", "VAR=VAL", completions)
 }
@@ -903,6 +935,26 @@ func (app *application) handlePrintableKey(key rune) {
 	}
 }
 
+func (app *application) handlePagination(up bool) {
+	front, _ := app.ui.optionsPages.GetFrontPage()
+	count := app.ui.optionsPages.GetPageCount()
+
+	index, _ := strconv.Atoi(front)
+	if up {
+		index--
+	} else {
+		index++
+	}
+
+	if index < 0 {
+		index = 0
+	} else if index > count-1 {
+		index = count - 1
+	}
+
+	app.ui.optionsPages.SwitchToPage(strconv.Itoa(index))
+}
+
 func (app *application) handleCopyKey() {
 
 }
@@ -938,6 +990,10 @@ func (app *application) captureRootInput(event *tcell.EventKey) *tcell.EventKey 
 		app.cursor--
 	case tcell.KeyRight:
 		app.cursor++
+	case tcell.KeyUp:
+		fallthrough
+	case tcell.KeyDown:
+		app.handlePagination(key == tcell.KeyUp)
 	case tcell.KeyRune:
 		app.handlePrintableKey(event.Rune())
 	}
@@ -998,6 +1054,11 @@ func main() {
 	}
 
 	app := newApplication(&sp)
+	// Queue a key-press event so that captureRootInput is called immediately
+	// after tview has finished setting up the application. This in turn allows
+	// brief to do some further initialization (e.g. updating views for the first
+	// time).
+	app.tviewApp.QueueEvent(tcell.NewEventKey(CANCEL_KEY, 0, tcell.ModNone))
 
 	if err := app.tviewApp.Run(); err != nil {
 		panic(err)
