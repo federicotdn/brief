@@ -120,6 +120,7 @@ type application struct {
 	lastPrefix            rune
 	tviewApp              *tview.Application
 	minibufferActive      bool
+	helpActive            bool
 	minibufferCompletions []string
 	inputDoneCallback     func(bool, string)
 	cursor                int
@@ -219,7 +220,7 @@ func newApplication(sp *spec) *application {
 	}
 
 	app := application{
-		ui:              newUserInterface(),
+		ui:              newUserInterface(len(root.Subcommands) > 0),
 		sp:              sp,
 		enabledCommands: []*subcommand{&root},
 		tviewApp:        tview.NewApplication(),
@@ -447,16 +448,16 @@ func (app *application) showMessage(format string, a ...any) {
 
 func (app *application) updateSubcommandsView() {
 	commands := app.visibleCommands()
+	if len(commands) == 0 {
+		app.ui.subcommandsTextView.SetText("")
+		return
+	}
+
 	cmdText := NewUIText(false, 0)
 
 	if app.lastPrefix != 0 {
 		cmdText.dim()
 	}
-
-	cmdText.color(KEY_COLOR).bold().write(" " + string(ENVVAR_KEY)).reset()
-	cmdText.write("  add environment variable\n")
-	cmdText.color(KEY_COLOR).bold().write(" " + string(HELP_KEY)).reset()
-	cmdText.write("  show help for brief\n\n")
 
 	for _, cmd := range commands {
 		cmdText.color(KEY_COLOR).bold().write(" " + string(cmd.key) + "  ").reset()
@@ -541,11 +542,16 @@ func (app *application) updateOptionsView() {
 	optsText := NewUIText(true, pagesHeight)
 
 	for i, cmd := range app.enabledCommands {
-		if len(cmd.Options) == 0 {
+		if i > 0 && len(cmd.Options) == 0 {
 			continue
 		}
 
 		optsText.bold().write(cmd.Name + ":").nl().unbold()
+
+		if i == 0 {
+			optsText.color(KEY_COLOR).bold().write("  " + string(ENVVAR_KEY)).reset()
+			optsText.write("  Add environment variable").nl()
+		}
 
 		for _, opt := range cmd.Options {
 			if !opt.isFlag() {
@@ -947,20 +953,26 @@ func (app *application) handlePagination(up bool) {
 	app.ui.optionsPages.SwitchToPage(strconv.Itoa(index))
 }
 
-func (app *application) handleCopyKey() {
-
-}
-
 func (app *application) handleHelpKey() {
 	// Allow using the help key even if a prefix key was active,
 	// for convenience.
 	app.lastPrefix = 0
-	app.showMessage("help")
+	app.helpActive = true
+	app.ui.root.AddItem(app.ui.helpModal, 0, 0, true)
+}
+
+func (app *application) handleHelpClose() {
+	app.ui.root.RemoveItem(app.ui.helpModal)
+	app.helpActive = false
+	app.tviewApp.SetFocus(app.ui.root)
 }
 
 func (app *application) captureRootInput(event *tcell.EventKey) *tcell.EventKey {
 	if app.minibufferActive {
 		return event
+	} else if app.helpActive {
+		app.handleHelpClose()
+		return nil
 	}
 
 	app.showMessage("")

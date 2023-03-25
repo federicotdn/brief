@@ -14,6 +14,7 @@ type userInterface struct {
 	optionsFlex         *tview.Flex
 	minibuffer          *tview.InputField
 	messagesTextView    *tview.TextView
+	helpModal           *tview.Modal
 	root                *tview.Flex
 }
 
@@ -26,6 +27,32 @@ type uiText struct {
 	i             int
 	paginated     bool
 }
+
+const HELP_TEXT = `
+Usage for brief:
+
+Subcommands, when available, are shown on the left panel. Activate subcommands by pressing their corresponding keys. For example, given:
+
+f  foo
+b  bar
+
+then the 'f' key would activate the foo subcommand, and 'b' would activate the bar subcommand.
+
+Options are shown on the right panel. Activate flags by first pressing the corresponding prefix key ('-', '=' or '+') and letter. For example, given:
+
+-t  test (--test)
+=v  version (--version)
+
+Then pressing '-' followed by 't' would enable the --test flag. Pressing '=' followed by 'v' would enable the --version flag.
+
+Positional arguments are enabled by pressing their corresponding number key ('0', '9', etc).
+
+More information available at:
+https://github.com/federicotdn/brief
+
+Press any key to dismiss this window.
+
+`
 
 func NewUIText(paginated bool, maxHeight int) *uiText {
 	return &uiText{
@@ -146,7 +173,7 @@ func region(label, contents string) string {
 	return fmt.Sprintf("[\"%v\"]%v[\"\"]", label, contents)
 }
 
-func newUserInterface() *userInterface {
+func newUserInterface(subcommandsEnabled bool) *userInterface {
 	topFlex := tview.NewFlex().SetDirection(tview.FlexRow)
 	topFlex.SetBorder(true)
 	topFlex.SetTitle("Command preview")
@@ -182,7 +209,9 @@ func newUserInterface() *userInterface {
 
 	bottomFlex := tview.NewFlex()
 
-	bottomFlex.AddItem(subcommandsFlex, 0, 1, false)
+	if subcommandsEnabled {
+		bottomFlex.AddItem(subcommandsFlex, 0, 1, false)
+	}
 	bottomFlex.AddItem(optionsFlex, 0, 2, false)
 
 	messagesTextView := tview.NewTextView()
@@ -195,6 +224,9 @@ func newUserInterface() *userInterface {
 
 	minibuffer := tview.NewInputField()
 
+	helpModal := tview.NewModal().AddButtons([]string{"Close"})
+	helpModal.SetText(HELP_TEXT)
+
 	return &userInterface{
 		root:                root,
 		cmdPreviewTextView:  cmdPreviewTextView,
@@ -203,5 +235,6 @@ func newUserInterface() *userInterface {
 		optionsFlex:         optionsFlex,
 		minibuffer:          minibuffer,
 		messagesTextView:    messagesTextView,
+		helpModal:           helpModal,
 	}
 }
