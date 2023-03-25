@@ -35,6 +35,9 @@ const (
 	FLAG_TYPE_VALUE_OPTIONAL = "valueOptional"
 	FLAG_TYPE_TOGGLE         = "toggle"
 
+	QUOTING_SINGLE = "single"
+	QUOTING_DOUBLE = "double"
+
 	ENVVAR_KEY = '!'
 	HELP_KEY   = '?'
 	CANCEL_KEY = tcell.KeyCtrlG
@@ -56,6 +59,7 @@ type option struct {
 	FlagType   string `yaml:"type"`
 	Repeatable bool   `yaml:"repeatable"`
 	Separator  string `yaml:"separator"`
+	Quoting    string `yaml:"quoting"`
 
 	// Properties to make querying for a value easier/quicker
 	Default     string           `yaml:"default"`
@@ -471,6 +475,10 @@ func (app *application) updateSubcommandsView() {
 	app.ui.subcommandsTextView.SetText(cmdText.page(0))
 }
 
+func (app *application) currentCommand() string {
+	return strings.TrimSpace(app.ui.cmdPreviewTextView.GetText(true))
+}
+
 func (app *application) updateCmdPreviewView() {
 	previewText := NewUIText(false, 0)
 	regionN := 0
@@ -494,7 +502,13 @@ func (app *application) updateCmdPreviewView() {
 		for _, val := range cmd.optValues {
 			opt := val.opt
 			valuePreview := val.value
-			if valuePreview == "" {
+
+			if opt.Quoting == QUOTING_SINGLE {
+				valuePreview = "'" + valuePreview + "'"
+			} else if opt.Quoting == QUOTING_DOUBLE {
+				valuePreview = "\"" + valuePreview + "\""
+			} else if valuePreview == "" {
+				// Quote empty values using double quotes, by default
 				valuePreview = "\"\""
 			}
 
@@ -1068,7 +1082,7 @@ func main() {
 		panic(err)
 	}
 
-	command := strings.TrimSpace(app.ui.cmdPreviewTextView.GetText(true))
+	command := app.currentCommand()
 	fmt.Println(command)
 
 	if !clipboard.Unsupported {

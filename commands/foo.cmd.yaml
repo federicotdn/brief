@@ -48,6 +48,12 @@ command:
     - flag: ["-r"]
       help: Test how repeatable flags work
       repeatable: true
+    - flag: ["--single-quote"]
+      help: Test how single quoting works
+      quoting: single
+    - flag: ["--double-quote"]
+      help: Test how double quoting works
+      quoting: double
     - flag: ["--comp-list"]
       help: Test how values completion works
       completion:
