@@ -462,9 +462,9 @@ func (app *application) updateSubcommandsView() {
 		cmdText.color(KEY_COLOR).bold().write(" " + string(cmd.key) + "  ").reset()
 		cmdText.write(cmd.Name)
 		if cmd.Help != "" {
-			cmdText.write(" - " + cmd.Help + "")
+			cmdText.dim().write(" " + cmd.Help).undim()
 		}
-		cmdText.write("\n")
+		cmdText.nl()
 	}
 
 	app.ui.subcommandsTextView.SetText(cmdText.page(0))
@@ -540,7 +540,7 @@ func (app *application) updateOptionsView() {
 	front, _ := app.ui.optionsPages.GetFrontPage()
 	optsText := NewUIText(true, pagesHeight)
 
-	for _, cmd := range app.enabledCommands {
+	for i, cmd := range app.enabledCommands {
 		if len(cmd.Options) == 0 {
 			continue
 		}
@@ -631,7 +631,9 @@ func (app *application) updateOptionsView() {
 			optsText.reset().nl()
 		}
 
-		optsText.nl()
+		if i < len(app.enabledCommands)-1 {
+			optsText.nl()
+		}
 	}
 
 	count := app.ui.optionsPages.GetPageCount()

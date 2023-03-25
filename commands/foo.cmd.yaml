@@ -59,3 +59,5 @@ command:
       repeatable: true
   - name: quuz
     help: The quuz subcommand (no options)
+  - name: quux
+    help: The quux subcommand (which has a pretty long help text, to be honest)
