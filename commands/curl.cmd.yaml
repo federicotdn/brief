@@ -44,6 +44,7 @@ command:
     help: Add custom header
     repeatable: true
     placeholder: "Header: Value"
+    quoting: double
   - argument: url
     help: URL
 
