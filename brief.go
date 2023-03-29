@@ -41,7 +41,6 @@ const (
 	ENVVAR_KEY = '!'
 	HELP_KEY   = '?'
 	CANCEL_KEY = tcell.KeyCtrlG
-	EXIT_KEY   = tcell.KeyCtrlX
 
 	MAX_COMPLETIONS = 40
 
@@ -129,6 +128,8 @@ type application struct {
 	inputDoneCallback     func(bool, string)
 	cursor                int
 	cursorMax             int
+	onCloseCallback       func()
+	initialized           bool
 }
 
 func isPrefix(r rune) bool {
@@ -981,6 +982,21 @@ func (app *application) handleHelpClose() {
 	app.tviewApp.SetFocus(app.ui.root)
 }
 
+func (app *application) handleFinishEditing() {
+	command := app.currentCommand()
+	fmt.Println(command)
+
+	if !clipboard.Unsupported {
+		clipboard.WriteAll(command)
+		fmt.Println("(copied to clipboard)")
+	}
+}
+
+func (app *application) initialize() {
+	app.initialized = true
+	app.showMessage("press %c for help, Ctrl-C to exit, ENTER to finish editing", HELP_KEY)
+}
+
 func (app *application) captureRootInput(event *tcell.EventKey) *tcell.EventKey {
 	if app.minibufferActive {
 		return event
@@ -1001,8 +1017,7 @@ func (app *application) captureRootInput(event *tcell.EventKey) *tcell.EventKey 
 	case tcell.KeyDelete:
 		app.handleDeletionKey(key != tcell.KeyDelete)
 	case tcell.KeyEnter:
-		fallthrough
-	case tcell.KeyCtrlX:
+		app.onCloseCallback = app.handleFinishEditing
 		app.tviewApp.Stop()
 	case tcell.KeyLeft:
 		app.cursor--
@@ -1019,6 +1034,10 @@ func (app *application) captureRootInput(event *tcell.EventKey) *tcell.EventKey 
 	app.clampCursor()
 	app.updateKeys()
 	app.updateViews()
+
+	if !app.initialized {
+		app.initialize()
+	}
 
 	return nil
 }
@@ -1082,11 +1101,7 @@ func main() {
 		panic(err)
 	}
 
-	command := app.currentCommand()
-	fmt.Println(command)
-
-	if !clipboard.Unsupported {
-		clipboard.WriteAll(command)
-		fmt.Println("(copied to clipboard)")
+	if app.onCloseCallback != nil {
+		app.onCloseCallback()
 	}
 }
