@@ -67,3 +67,14 @@ command:
     help: The quuz subcommand (no options)
   - name: quux
     help: The quux subcommand (which has a pretty long help text, to be honest)
+    options:
+      - flag: ["--sub-test"]
+        type: toggle
+        help: Toggle something!
+    subcommands:
+      - name: sub1
+        help: The first sub-sub command!
+        options:
+          - flag: ["--sub-sub-test"]
+            type: toggle
+            help: Toggle something, again!

@@ -31,14 +31,14 @@ type uiText struct {
 const HELP_TEXT = `
 Usage for brief:
 
-Subcommands, when available, are shown on the left panel. Activate subcommands by pressing their corresponding keys. For example, given:
+Subcommands (when present), are shown on the 'Subcommands' panel. Activate subcommands by pressing their corresponding keys. For example, given:
 
 f  foo
 b  bar
 
 then the 'f' key would activate the foo subcommand, and 'b' would activate the bar subcommand.
 
-Options are shown on the right panel. Activate flags by first pressing the corresponding prefix key ('-', '=' or '+') and letter. For example, given:
+Options (i.e. flags and positional arguments) are shown on the 'Options' panel. Activate flags by first pressing the corresponding prefix key ('-', '=' or '+') and letter. For example, given:
 
 -t  test (--test)
 =v  version (--version)

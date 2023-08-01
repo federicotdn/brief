@@ -465,10 +465,14 @@ func (app *application) updateSubcommandsView() {
 	}
 
 	for _, cmd := range commands {
-		cmdText.color(KEY_COLOR).bold().write(" " + string(cmd.key) + "  ").reset()
+		cmdText.color(KEY_COLOR).bold().write(" " + string(cmd.key) + "  ")
+		cmdText.nocolor().unbold()
 		cmdText.write(cmd.Name)
 		if cmd.Help != "" {
-			cmdText.dim().write(" " + cmd.Help).undim()
+			cmdText.dim().write(" " + cmd.Help)
+			if app.lastPrefix == 0 {
+				cmdText.undim()
+			}
 		}
 		cmdText.nl()
 	}
@@ -564,8 +568,14 @@ func (app *application) updateOptionsView() {
 		optsText.bold().write(cmd.Name + ":").nl().unbold()
 
 		if i == 0 {
-			optsText.color(KEY_COLOR).bold().write("  " + string(ENVVAR_KEY)).reset()
+			if app.lastPrefix != 0 {
+				optsText.dim()
+			}
+			optsText.color(KEY_COLOR).bold()
+			optsText.write("  " + string(ENVVAR_KEY))
+			optsText.nocolor().unbold()
 			optsText.write("  Add environment variable").nl()
+			optsText.reset()
 		}
 
 		for _, opt := range cmd.Options {
