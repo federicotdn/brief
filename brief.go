@@ -1,7 +1,6 @@
 package main
 
 import (
-	"embed"
 	"flag"
 	"fmt"
 	"math"
@@ -17,13 +16,8 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-//go:embed commands
-var commandSpecs embed.FS
-
 const (
-	SPEC_VERSION        = "1.0.0"
-	COMMANDS_DIR        = "commands/"
-	COMMAND_SPEC_SUFFIX = ".cmd.yaml"
+	SPEC_VERSION = "1.0.0"
 
 	LETTERS       = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 	DIGITS        = "0987654321"
@@ -1077,14 +1071,14 @@ func main() {
 	flag.Parse()
 
 	if flag.NArg() != 1 {
-		fmt.Fprintln(os.Stderr, "error: command name is required")
+		fmt.Fprintln(os.Stderr, "error: a command file is required")
 		flag.Usage()
 		os.Exit(1)
 	}
 
-	data, err := commandSpecs.ReadFile(COMMANDS_DIR + flag.Arg(0) + COMMAND_SPEC_SUFFIX)
+	data, err := os.ReadFile(flag.Arg(0))
 	if err != nil {
-		fmt.Fprintln(os.Stderr, "error: command not found:", flag.Arg(0))
+		fmt.Fprintln(os.Stderr, "error: command file not found:", flag.Arg(0))
 		os.Exit(1)
 	}
 
@@ -1096,7 +1090,7 @@ func main() {
 	}
 
 	if sp.Version != SPEC_VERSION {
-		fmt.Fprintln(os.Stderr, "error: spec version must be", SPEC_VERSION)
+		fmt.Fprintln(os.Stderr, "error: spec version must match", SPEC_VERSION)
 		os.Exit(1)
 	}
 

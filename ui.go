@@ -47,6 +47,8 @@ Then pressing '-' followed by 't' would enable the --test flag. Pressing '=' fol
 
 Positional arguments are enabled by pressing their corresponding number key ('0', '9', etc).
 
+Finally, press ENTER to finish building the command and copy it to the keyboard. Press Ctrl-C to close brief.
+
 More information available at:
 https://github.com/federicotdn/brief
 

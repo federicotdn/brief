@@ -1,0 +1,23 @@
+specVersion: 1.0.0
+command:
+  name: websocat
+  version: 1.11.0
+  options:
+  - flag: ["-h"]
+    help: Show help
+    type: toggle
+  - flag: ["-v"]
+    help: Make the operation more talkative
+    type: toggle
+  - flag: ["--version"]
+    help: Show version number and quit
+    type: toggle
+  - flag: ["-H", "--header"]
+    help: Add custom header
+    repeatable: true
+    placeholder: "Header: Value"
+    quoting: double
+  - argument: url
+    help: URL
+    default: "wss://"
+
