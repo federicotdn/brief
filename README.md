@@ -1,4 +1,4 @@
-# brief
+# brief ⌨️
 Build terminal commands via an interactive and documentable interface, in the style of [Magit's](https://magit.vc/) [transient](https://github.com/magit/transient). This is done by using cmd.yaml files - which are like OpenAPI but for describing command options.
 
 <p align="center">
